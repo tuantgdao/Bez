@@ -21,6 +21,7 @@ class Cube
 	void orbit(double);
 	void scale(double,double,double);
 	void reset();
+	void rotateY(double);
 };
 
 #endif

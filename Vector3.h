@@ -26,5 +26,7 @@ class Vector3
 		double length();
 		void normalize();
 		void print(string comment);
+		float angle(Vector3);
+		float magnitude();
 };
 #endif

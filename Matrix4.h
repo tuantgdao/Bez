@@ -36,6 +36,12 @@ class Matrix4
 	void changeValue(int i, int j, double value);
 	void allChange(int);
 	void printInfo();
+	//
+	Matrix4 Matrix4::ballRotation(int, int, int, int, int, int);
+	void copyRot(Matrix4);
+	void invertOrtho();
+	Matrix4& rotate(double, float, float, float);
+	void rotate(double, Vector3&);
 	//end of what I added
 };
 

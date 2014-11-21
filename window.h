@@ -32,6 +32,11 @@ class Window	  // OpenGL output window related routines
 	static void loadBunny();
 	static void loadBunny2();
 	static void loadDragon();
+	static void loadDragon2();
+	static void loadBear();
+	//
+	void processMouseClick(int, int, int, int);
+	void processMouseMove(int, int);
 	//End of what i'm adding
 };
 

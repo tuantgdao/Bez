@@ -101,3 +101,17 @@ void Vector3::print(string comment)
 {
 	cout << comment << endl << "x: " << x << endl << "y: " << y << endl << "z: " << z << endl;
 }
+
+float Vector3::angle(Vector3 a)
+{
+	float x = a.dot(a, *this);
+	float y = (*this).magnitude();
+	return acos(x / (a.magnitude()*y) );
+}
+
+float Vector3::magnitude()
+{
+
+	//cout << "mag: " << x << ',' << y << ',' << z;
+	return sqrt(x*x + y*y + z*z);
+}

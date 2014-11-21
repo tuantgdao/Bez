@@ -199,3 +199,105 @@ void Matrix4::printInfo()
 	Vector3 norm(normX, normY, normZ);
 	norm.print("");
 }
+
+Matrix4 Matrix4::ballRotation(int width, int height, int oX, int oY, int tX, int tY)
+{
+	const float TRACKBALL_SIZE = 1.3f;              // virtual trackball size (empirical value)
+	Matrix4 mInv;                                   // inverse of ObjectView matrix
+	Vector3 v1, v2;                                 // mouse drag positions in normalized 3D space
+	float smallSize;                                // smaller window size between width and height
+	float halfWidth, halfHeight;                    // half window sizes
+	float angle;                                    // rotational angle
+	float d;                                        // distance
+
+	// Compute mouse coordinates in window and normalized to -1..1
+	// ((0,0)=window center, (-1,-1) = bottom left, (1,1) = top right)
+	halfWidth = (float)width / 2.0f;
+	halfHeight = (float)height / 2.0f;
+	smallSize = (halfWidth < halfHeight) ? halfWidth : halfHeight;
+	v1.x = (((float)oX - halfWidth) / smallSize);
+	v1.y = (((float)(height - oY) - halfHeight) / smallSize);
+	v2.x = (((float)tX - halfWidth) / smallSize);
+	v2.y = (((float)(height - tY) - halfHeight) / smallSize);
+
+	// Compute z-coordinates on Gaussian trackball:
+	d = sqrtf(v1.x * v1.x + v1.y * v1.y);
+	v1.z = (expf(-TRACKBALL_SIZE * d * d));
+	d = sqrtf(v2.x * v2.x + v2.y * v2.y);
+	v2.z = (expf(-TRACKBALL_SIZE * d * d));
+	/*
+	v1[0]       = ((float)fromX - halfWidth)  / smallSize;
+	v1[1]       = ((float)(height-fromY) - halfHeight) / smallSize;
+	v2[0]       = ((float)toX   - halfWidth)  / smallSize;
+	v2[1]       = ((float)(height-toY)   - halfHeight) / smallSize;
+	// Compute z-coordinates on Gaussian trackball:
+	d       = sqrtf(v1[0] * v1[0] + v1[1] * v1[1]);
+	v1[2]   = expf(-TRACKBALL_SIZE * d * d);
+	d       = sqrtf(v2[0] * v2[0] + v2[1] * v2[1]);
+	v2[2]   = expf(-TRACKBALL_SIZE * d * d);
+	*/
+	// Compute rotational angle:
+	angle = v1.angle(v2);                          // angle = angle between v1 and v2
+
+	// Compute rotational axis:
+	v2 = v2.cross(v1);                                  // v2 = v2 x v1 (cross product)
+
+	// Convert axis coordinates (v2) from WCS to OCS:
+	mInv.identity();
+	mInv.copyRot(*this);                             // copy rotational part of mv to mInv
+	mInv.invertOrtho();                             // invert orthogonal matrix mInv
+	// MIGHT BE 1 BELOW
+	Vector4 tmp = Vector4(v2.x, v2.y, v2.z, 1);
+	Vector4 tmp2 = mInv*tmp;
+	v2 = Vector3(tmp2.x, tmp2.y, tmp2.z);
+	//v2.multiply(&mInv);                             // v2 = v2 x mInv (matrix multiplication)
+	v2.normalize();                                 // normalize v2 before rotation
+
+	// Perform acutal model view matrix modification:
+	return rotate(-angle, v2[0], v2[1], v2[2]);      // rotate model view matrix
+}
+
+void Matrix4::copyRot(Matrix4 a)
+{
+	for (int i = 0; i < 3; i++)
+	{
+		for (int j = 0; j < 3; j++)
+		{
+			//this->set(i, j, a->get(i, j));
+			(*this).m[i][j] = a.m[i][j];
+		}
+	}
+}
+
+void Matrix4::invertOrtho()
+{
+	(*this).transpose();
+}
+
+Matrix4& Matrix4::rotate(double angle, float a, float b, float c)
+{
+	Vector3 tmp = Vector3(a, b, c);
+	this->rotate(angle, tmp);
+	return *this;
+}
+
+void Matrix4::rotate(double angle, Vector3 &a)
+{
+	// Transformations slide 44
+	Vector3 b = Vector3(a.x, a.y, a.z);
+	b.normalize();
+
+	Matrix4 rot;
+	rot.makeRotate(angle, b);
+	rot.transpose(); // make row major
+
+	Matrix4 result = (*this)*rot;
+
+	for (int i = 0; i < 4; ++i)
+	{
+		for (int j = 0; j < 4; ++j)
+		{
+			m[i][j] = result.m[i][j];
+		}
+	}
+}

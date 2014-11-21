@@ -54,6 +54,13 @@ void Cube::moveOutIn(double x)
 	model2world = moveMatrix*model2world;
 }
 
+void Cube::rotateY(double x)
+{
+	Matrix4 rotateMatrix = getMatrix();
+	rotateMatrix.makeRotateY(x);
+	model2world = rotateMatrix*model2world;
+}
+
 void Cube::orbit(double angle)
 {
 	Matrix4 orbitMatrix = getMatrix();
