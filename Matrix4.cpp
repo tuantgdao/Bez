@@ -225,17 +225,7 @@ Matrix4 Matrix4::ballRotation(int width, int height, int oX, int oY, int tX, int
 	v1.z = (expf(-TRACKBALL_SIZE * d * d));
 	d = sqrtf(v2.x * v2.x + v2.y * v2.y);
 	v2.z = (expf(-TRACKBALL_SIZE * d * d));
-	/*
-	v1[0]       = ((float)fromX - halfWidth)  / smallSize;
-	v1[1]       = ((float)(height-fromY) - halfHeight) / smallSize;
-	v2[0]       = ((float)toX   - halfWidth)  / smallSize;
-	v2[1]       = ((float)(height-toY)   - halfHeight) / smallSize;
-	// Compute z-coordinates on Gaussian trackball:
-	d       = sqrtf(v1[0] * v1[0] + v1[1] * v1[1]);
-	v1[2]   = expf(-TRACKBALL_SIZE * d * d);
-	d       = sqrtf(v2[0] * v2[0] + v2[1] * v2[1]);
-	v2[2]   = expf(-TRACKBALL_SIZE * d * d);
-	*/
+
 	// Compute rotational angle:
 	angle = v1.angle(v2);                          // angle = angle between v1 and v2
 
@@ -254,7 +244,7 @@ Matrix4 Matrix4::ballRotation(int width, int height, int oX, int oY, int tX, int
 	v2.normalize();                                 // normalize v2 before rotation
 
 	// Perform acutal model view matrix modification:
-	return rotate(-angle, v2[0], v2[1], v2[2]);      // rotate model view matrix
+	return rotate(-angle*100, v2.x, v2.y, v2.z);      // rotate model view matrix
 }
 
 void Matrix4::copyRot(Matrix4 a)
