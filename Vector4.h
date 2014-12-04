@@ -14,6 +14,7 @@ class Vector4
 		double z;
 		double w;
 
+		Vector4();
 		Vector4(double a, double b, double c, double d);
 		Vector4& operator+(const Vector4&);
 		Vector4& operator-(const Vector4&);

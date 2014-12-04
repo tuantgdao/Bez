@@ -10,6 +10,14 @@ Vector4::Vector4(double a, double b, double c, double d)
 	w = d;
 }
 
+Vector4::Vector4()
+{
+	x = 0;
+	y = 0;
+	z = 0;
+	w = 1;
+}
+
 Vector4& Vector4::operator+(const Vector4& v1)
 {
 	Vector4 temp(0, 0, 0, 0);

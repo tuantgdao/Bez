@@ -19,6 +19,7 @@
 #include "shader.h"
 #include "Light.h"
 #include "Material.h"
+#include "Bezier.h"
 
 #define PI 3.14159265
 
@@ -520,13 +521,119 @@ void Window::displayCallback()
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);  // clear color and depth buffer
 
+	glMatrixMode(GL_MODELVIEW);  // make sure we're in Modelview mode
+
+	Matrix4 glmatrix;
+	glmatrix = Globals::cube.getMatrix();
+	glmatrix.transpose();
+	glLoadMatrixd(glmatrix.getPointer());
+
+	glBegin(GL_QUADS);
+
+	Bezier my = Bezier(5, 5);
+
+	for (float t1 = -0.5; t1 < 0.5; t1 += 0.01)
+	{
+		for (float t2 = -0.5; t2 < 0.5; t2 += 0.01)
+		{
+			my.tessellate(t1, t2, 0.05);
+		}
+	}
+
+	glEnd();
+
+	/*
+	//Setup 4 control points
+	Vector4 p0(0.0, 0.0, 0.0, 1.0);
+	Vector4 p1(0.0, 1.0, 0.0, 1.0);
+	Vector4 p2(1.0, 1.0, 0.0, 1.0);
+	Vector4 p3(1.0, 0.0, 0.0, 1.0);
+
+	//Setup the control point matrix
+	Matrix4 Mp(p0.x, p1.x, p2.x, p3.x,
+		p0.y, p1.y, p2.y, p3.y,
+		p0.z, p1.z, p2.z, p3.z,
+		0.0, 0.0, 0.0, 0.0);
+
+	//Pick a time t
+	double t0 = 0.25;
+	double t1 = .5;
+	double t2 = .75;
+	double t3 = 1.0;
+
+	//Create a vector with our Bernstein coefficients
+	Vector4 C0(bernstizzlesCoeff(3, 0, t0),
+		bernstizzlesCoeff(3, 1, t0),
+		bernstizzlesCoeff(3, 2, t0),
+		bernstizzlesCoeff(3, 3, t0));
+
+	//Calculate the final point q
+	Vector4 q0 = Mp * C0;
+
+	//And make sure q is a point by setting its w-component to 1
+	q0.w = 1.0;
+
+	//2nd point
+
+	//Create a vector with our Bernstein coefficients
+	Vector4 C1(bernstizzlesCoeff(3, 0, t1),
+		bernstizzlesCoeff(3, 1, t1),
+		bernstizzlesCoeff(3, 2, t1),
+		bernstizzlesCoeff(3, 3, t1));
+
+	//Calculate the final point q
+	Vector4 q1 = Mp * C1;
+
+	//And make sure q is a point by setting its w-component to 1
+	q1.w = 1.0;
+
+	//3rd point
+
+	//Create a vector with our Bernstein coefficients
+	Vector4 C2(bernstizzlesCoeff(3, 0, t2),
+		bernstizzlesCoeff(3, 1, t2),
+		bernstizzlesCoeff(3, 2, t2),
+		bernstizzlesCoeff(3, 3, t2));
+
+	//Calculate the final point q
+	Vector4 q2 = Mp * C2;
+
+	//And make sure q is a point by setting its w-component to 1
+	q2.w = 1.0;
+
+	//4th point
+
+	//Create a vector with our Bernstein coefficients
+	Vector4 C3(bernstizzlesCoeff(3, 0, t3),
+		bernstizzlesCoeff(3, 1, t3),
+		bernstizzlesCoeff(3, 2, t3),
+		bernstizzlesCoeff(3, 3, t3));
+
+	//Calculate the final point q
+	Vector4 q3 = Mp * C3;
+
+	//And make sure q is a point by setting its w-component to 1
+	q3.w = 1.0;
+
+	//Draw the quads
+	glBegin(GL_QUADS);
+
+	glVertex3d(q0.x, q0.y, q0.z);
+	glVertex3d(q1.x, q1.y, q1.z);
+	glVertex3d(q2.x, q2.y, q2.z);
+	glVertex3d(q3.x, q3.y, q3.z);
+
+	glEnd();
+	*/
+
+	/* Project 5 
 	//Shader
 	Shader myShader = Shader("diffuse_shading.vert", "diffuse_shading.frag", true);
 	if (pixel == 1)
 		myShader.bind();
 	else
 		myShader.unbind();
-	//myShader.printLog();
+	myShader.printLog();
 	//End of shader
 
 	//Light
@@ -570,7 +677,8 @@ void Window::displayCallback()
 		drawBear();
 
 	glEnd();
-  
+	*/
+
 	glFlush();  
 	glutSwapBuffers();
 }
@@ -760,15 +868,12 @@ void Window::processMouseMove(int x, int y) {
 
 			d_position[1] *= y_scale;
 			d_position[2] *= y_scale;
-			//shape.directional.setPosition(d_position);
 
 			p_position[0] *= y_scale;
 			p_position[1] *= y_scale;
-			//shape.point.setPosition(p_position);
 
 			s_position[0] *= y_scale;
 			s_position[2] *= y_scale;
-			//shape.spot.setPosition(s_position);
 
 			y_mouse = y;
 		}

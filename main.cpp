@@ -12,6 +12,7 @@
 #include "Vector4.h"
 #include "Camera.h"
 #include "shader.h"
+#include "Bezier.h"
 
 using namespace std;
 
@@ -42,9 +43,9 @@ int main(int argc, char *argv[])
   glEnable(GL_NORMALIZE);
   glLightModelf(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_TRUE);
   
-  Window::loadBunny2();
-  Window::loadDragon2();
-  Window::loadBear();
+  //Window::loadBunny2();
+  //Window::loadDragon2();
+  //Window::loadBear();
   
   // Install callback functions:
   glutDisplayFunc(Window::displayCallback);

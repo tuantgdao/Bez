@@ -17,7 +17,11 @@ class Matrix4
     
   public:
 	  double m[4][4];
-    Matrix4();     
+    Matrix4();
+	Matrix4(double, double, double, double,
+		double, double, double, double,
+		double, double, double, double,
+		double, double, double, double);
     Matrix4& operator=(const Matrix4&);
 	Matrix4& operator*(const Matrix4&);
 	Vector4& operator*(const Vector4&);
