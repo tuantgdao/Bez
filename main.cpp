@@ -19,12 +19,28 @@ using namespace std;
 namespace Globals
 {
   Cube cube;
-  Camera camera(Vector3(-20,20,-10), Vector3(0,0,0), Vector3(0,1,0) );
+  Camera camera(Vector3(0,0,0), Vector3(0,0,-1), Vector3(0,1,0) );
   int renderInt;
   int frustum;
   int bound;
   int box;
 };
+
+//Texture.cpp provided
+
+// initialize OpenGL state
+void initGL()
+{
+	glEnable(GL_TEXTURE_2D);   // enable texture mapping
+	glShadeModel(GL_SMOOTH);   // enable smooth shading
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);  // black background
+	glClearDepth(1.0f);        // depth buffer setup
+	glEnable(GL_DEPTH_TEST);   // enables depth testing
+	glDepthFunc(GL_LEQUAL);    // configure depth testing
+	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);          // really nice perspective calculations
+}
+
+//End of texture.cpp
 
 int main(int argc, char *argv[])
 { 
@@ -43,10 +59,6 @@ int main(int argc, char *argv[])
   glEnable(GL_NORMALIZE);
   glLightModelf(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_TRUE);
   
-  //Window::loadBunny2();
-  //Window::loadDragon2();
-  //Window::loadBear();
-  
   // Install callback functions:
   glutDisplayFunc(Window::displayCallback);
   glutReshapeFunc(Window::reshapeCallback);
@@ -62,6 +74,8 @@ int main(int argc, char *argv[])
     
   // Initialize cube matrix:
   Globals::cube.getMatrix().identity();
+
+  initGL();
     
   glutMainLoop();
   return 0;

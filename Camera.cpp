@@ -13,8 +13,8 @@ Camera::Camera(Vector3 ie, Vector3 id, Vector3 iup)
 Camera::Camera()
 {
 	e = Vector3(0, 0, 0);
-	d = Vector3(0, 0, 0);
-	up = Vector3(0, 0, 0);
+	d = Vector3(0, 0, 10);
+	up = Vector3(0, 1, 0);
 	c = getInverseCamera();
 }
 

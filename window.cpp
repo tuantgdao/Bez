@@ -59,6 +59,7 @@ void Window::idleCallback()
 // Callback method called by GLUT when graphics window is resized by the user
 void Window::reshapeCallback(int w, int h)
 {
+	/* Testing their reshape
   cerr << "Window::reshapeCallback called" << endl;
   width = w;
   height = h;
@@ -70,442 +71,24 @@ void Window::reshapeCallback(int w, int h)
   glMatrixMode(GL_MODELVIEW);
 
   Globals::camera.setFrustum(30.0, (double)(width) / (double)height, 1.0, 1000.0);
-}
+  */
 
-int bunnyNumFaces = 69666;
-int bunnyNumVerts = 34835;
+	/* tell OpenGL we want to display in a recangle that is the
+	same size as the window
+	*/
+	glViewport(0, 0, width, height);
 
-std::vector<Vector3> bunnyVert;
-std::vector<Vector3> bunnyRgb;
-std::vector<Vector3> bunnyNorm;
-std::vector<Vector3> bunnyFaceVert;
-std::vector<Vector3> bunnyFaceNorm;
+	/* switch to the projection matrix */
+	glMatrixMode(GL_PROJECTION);
 
-float bunnyScale = 0;
-float bunnyMidX = 0;
-float bunnyMidY = 0;
-float bunnyMidZ = 0;
+	/* clear the projection matrix */
+	glLoadIdentity();
 
-void Window::loadBunny2()
-{
-	FILE* fp;
-	float x, y, z;
-	float r, g, b;
-	float nx, ny, nz;
-	float fvx, fvy, fvz;
-	float fnx, fny, fnz;
-	int c1, c2;
+	/* set the camera view, orthographic projection with 4x4 unit square canvas*/
+	glOrtho(-2, 2, -2, 2, 2, -2);
 
-	float xMax = 0;
-	float xMin = 0;
-
-	float yMax = 0;
-	float yMin = 0;
-
-	float zMax = 0;
-	float zMin = 0;
-
-	fp = fopen("bunny.obj", "rb");
-
-	do{
-		c1 = fgetc(fp);
-		c2 = fgetc(fp);
-		if ((c1 == 'v') && (c2 == ' '))
-		{
-			fscanf(fp, "%f %f %f %f %f %f", &x, &y, &z, &r, &g, &b);
-			Vector3 xyz = Vector3(x, y, z);
-			Vector3 colors = Vector3(r, g, b);
-			bunnyVert.push_back(xyz);
-			bunnyRgb.push_back(colors);
-
-			xMax = fmaxf(xMax, x);
-			xMin = fminf(xMin, x);
-
-			yMax = fmaxf(yMax, y);
-			yMin = fminf(yMin, y);
-
-			zMax = fmaxf(zMax, z);
-			zMin = fminf(zMin, z);
-		}
-		else if ((c1 == 'v') && (c2 == 'n'))
-		{
-			fscanf(fp, "%f %f %f", &nx, &ny, &nz);
-			Vector3 m = Vector3(nx, ny, nz);
-			m.normalize();
-			bunnyNorm.push_back(m);
-		}
-		else if( (c1 == 'f') && (c2 == ' '))
-		{
-			fscanf(fp, "%f//%f %f//%f %f//%f", &fvx, &fnx, &fvy, &fny, &fvz, &fnz);
-			Vector3 fv = Vector3(fvx, fvy, fvz);
-			Vector3 fn = Vector3(fnx, fny, fnz);
-			bunnyFaceVert.push_back(fv);
-			bunnyFaceNorm.push_back(fn);
-		}
-		else
-		{
-			fscanf(fp, "");
-		}
-	} while (c1 != EOF);
-
-	float len = 10 * tan(30 * PI / 180);
-
-	bunnyScale = (len / (xMax - xMin));
-
-	bunnyMidX = xMin + (xMax - xMin) / 2;
-	bunnyMidY = yMin + (yMax - yMin) / 2;
-	bunnyMidZ = zMin + (zMax - zMin) / 2;
-
-	fclose(fp);
-}
-
-void drawBunny()
-{
-	Matrix4 bunnyTranslate;
-	bunnyTranslate.makeTranslate(-bunnyMidX, -bunnyMidY, -bunnyMidZ);
-
-	Matrix4 bunnyScaling;
-	bunnyScaling.makeScale(bunnyScale, bunnyScale, bunnyScale);
-
-	for (int i = 0; i < bunnyNumFaces - 1; i++)
-	{
-		//First Vertex
-		int first = bunnyFaceVert[i].x;
-		Vector4 bunny = Vector4(bunnyVert[first - 1].x, bunnyVert[first - 1].y, bunnyVert[first - 1].z, 1);
-
-		bunny = bunnyTranslate*bunny;
-		bunny = bunnyScaling*bunny;
-
-		Vector3 bunnyColor = bunnyRgb[first - 1];
-
-		int fn = bunnyFaceNorm[i].x;
-		Vector3 normBunny = bunnyNorm[fn - 1];
-
-		glColor3d(bunnyColor.x, bunnyColor.y, bunnyColor.z);
-		glNormal3d(normBunny.x, normBunny.y, normBunny.z);
-		glVertex3d(bunny.x, bunny.y, bunny.z);
-
-		//Second Vertex
-		int second = bunnyFaceVert[i].y;
-		Vector4 bunny2 = Vector4(bunnyVert[second - 1].x, bunnyVert[second - 1].y, bunnyVert[second - 1].z, 1);
-
-		Vector3 bunnyColor2 = bunnyRgb[second - 1];
-
-		int sn = bunnyFaceNorm[i].y;
-		Vector3 normBunny2 = bunnyNorm[sn - 1];
-
-		bunny2 = bunnyTranslate*bunny2;
-		bunny2 = bunnyScaling*bunny2;
-
-		glColor3d(bunnyColor2.x, bunnyColor2.y, bunnyColor2.z);
-		glNormal3d(normBunny2.x, normBunny2.y, normBunny2.z);
-		glVertex3d(bunny2.x, bunny2.y, bunny2.z);
-
-		//Third Vertex
-		int third = bunnyFaceVert[i].z;
-		Vector4 bunny3 = Vector4(bunnyVert[third - 1].x, bunnyVert[third - 1].y, bunnyVert[third - 1].z, 1);
-
-		Vector3 bunnyColor3 = bunnyRgb[third - 1];
-
-		int tn = bunnyFaceNorm[i].z;
-		Vector3 normBunny3 = bunnyNorm[tn - 1];
-
-		bunny3 = bunnyTranslate*bunny3;
-		bunny3 = bunnyScaling*bunny3;
-
-		glColor3d(bunnyColor3.x, bunnyColor3.y, bunnyColor3.z);
-		glNormal3d(normBunny3.x, normBunny3.y, normBunny3.z);
-		glVertex3d(bunny3.x, bunny3.y, bunny3.z);
-	}
-	//glEnd();
-}
-
-int dragNumFaces = 871168;
-int dragNumVerts = 435476;
-
-std::vector<Vector3> dragVert;
-std::vector<Vector3> dragNorm;
-std::vector<Vector3> dragFaceVert;
-std::vector<Vector3> dragFaceNorm;
-
-float dragScale = 0;
-float dragMidX = 0;
-float dragMidY = 0;
-float dragMidZ = 0;
-
-void Window::loadDragon2()
-{
-	FILE* fp;
-	float x, y, z;
-	float nx, ny, nz;
-	float fvx, fvy, fvz;
-	float fnx, fny, fnz;
-	int c1, c2;
-
-	float xMax = 0;
-	float xMin = 0;
-
-	float yMax = 0;
-	float yMin = 0;
-
-	float zMax = 0;
-	float zMin = 0;
-
-	fp = fopen("dragon.obj", "rb");
-	int i = 0;
-	int fuckyou = 0;
-	do{
-		c1 = fgetc(fp);
-		c2 = fgetc(fp);
-		//cout << "C1: " << (char)c1 << endl;
-		if ((c1 == 'v') && (c2 == ' '))
-		{
-			fscanf(fp, "%f %f %f", &x, &y, &z);
-			Vector3 xyz = Vector3(x, y, z);
-			dragVert.push_back(xyz);
-
-			xMax = fmaxf(xMax, x);
-			xMin = fminf(xMin, x);
-
-			yMax = fmaxf(yMax, y);
-			yMin = fminf(yMin, y);
-
-			zMax = fmaxf(zMax, z);
-			zMin = fminf(zMin, z);
-			//cout << "dragVert:" << dragVert[i].x << endl;
-			i++;
-		}
-		else if ((c1 == 'v') && (c2 == 'n'))
-		{
-			fscanf(fp, "%f %f %f", &nx, &ny, &nz);
-			Vector3 m = Vector3(nx, ny, nz);
-			m.normalize();
-			dragNorm.push_back(m);
-		}
-		else if ((c1 == 'f') || (c2 == 'f'))
-		{
-			fscanf(fp, "%f//%f %f//%f %f//%f", &fvx, &fnx, &fvy, &fny, &fvz, &fnz);
-			Vector3 fv = Vector3(fvx, fvy, fvz);
-			Vector3 fn = Vector3(fnx, fny, fnz);
-			dragFaceVert.push_back(fv);
-			dragFaceNorm.push_back(fn);
-			//cout << "Drag face vert: " << fvx << endl;
-			x++;
-		}
-		else
-		{
-			//cout << "C1: " << c1 << endl;
-			fscanf(fp, "");
-		}
-	} while (c1 != EOF);
-
-	float len = 10 * tan(30 * PI / 180);
-
-	dragScale = (len / (xMax - xMin));
-
-	dragMidX = xMin + (xMax - xMin) / 2;
-	dragMidY = yMin + (yMax - yMin) / 2;
-	dragMidZ = zMin + (zMax - zMin) / 2;
-
-	//cout << "dragFaceVert1: " << dragFaceNorm[871167].x << endl;
-	fclose(fp);
-}
-
-void drawDragon()
-{
-	Matrix4 dragTranslate;
-	dragTranslate.makeTranslate(-dragMidX, -dragMidY, -dragMidZ);
-
-	Matrix4 dragScaling;
-	dragScaling.makeScale(dragScale, dragScale, dragScale);
-
-	for (int i = 0; i < dragNumFaces - 1; i++)
-	{
-		//First Vertex
-		int first = dragFaceVert[i].x;
-		Vector4 dragon = Vector4(dragVert[first - 1].x, dragVert[first - 1].y, dragVert[first - 1].z, 1);
-
-		dragon = dragTranslate*dragon;
-		dragon = dragScaling*dragon;
-
-		int fn = dragFaceNorm[i].x;
-		Vector3 normDrag = dragNorm[fn - 1];
-
-		//glColor3d(dragColor.x, dragColor.y, dragColor.z);
-		glNormal3d(normDrag.x, normDrag.y, normDrag.z);
-		glVertex3d(dragon.x, dragon.y, dragon.z);
-
-		//Second Vertex
-		int second = dragFaceVert[i].y;
-		Vector4 dragon2 = Vector4(dragVert[second - 1].x, dragVert[second - 1].y, dragVert[second - 1].z, 1);
-
-		int sn = dragFaceNorm[i].y;
-		Vector3 normDrag2 = dragNorm[sn - 1];
-
-		dragon2 = dragTranslate*dragon2;
-		dragon2 = dragScaling*dragon2;
-
-		//glColor3d(dragColor2.x, dragColor2.y, dragColor2.z);
-		glNormal3d(normDrag2.x, normDrag2.y, normDrag2.z);
-		glVertex3d(dragon2.x, dragon2.y, dragon2.z);
-
-		//Third Vertex
-		int third = dragFaceVert[i].z;
-		Vector4 dragon3 = Vector4(dragVert[third - 1].x, dragVert[third - 1].y, dragVert[third - 1].z, 1);
-
-		int tn = dragFaceNorm[i].z;
-		Vector3 normDrag3 = dragNorm[tn - 1];
-
-		dragon3 = dragTranslate*dragon3;
-		dragon3 = dragScaling*dragon3;
-
-		//glColor3d(dragColor3.x, dragColor3.y, dragColor3.z);
-		glNormal3d(normDrag3.x, normDrag3.y, normDrag3.z);
-		glVertex3d(dragon3.x, dragon3.y, dragon3.z);
-	}
-}
-
-int bearNumFaces = 288798;
-int bearNumVerts = 866394;
-
-std::vector<Vector3> bearVert;
-std::vector<Vector3> bearNorm;
-std::vector<Vector3> bearFaceVert;
-std::vector<Vector3> bearFaceNorm;
-
-float bearScale = 0;
-float bearMidX = 0;
-float bearMidY = 0;
-float bearMidZ = 0;
-
-void Window::loadBear()
-{
-	FILE* fp;
-	float x, y, z;
-	float nx, ny, nz;
-	float fvx, fvy, fvz;
-	float fnx, fny, fnz;
-	int c1, c2;
-
-	float xMax = 0;
-	float xMin = 0;
-
-	float yMax = 0;
-	float yMin = 0;
-
-	float zMax = 0;
-	float zMin = 0;
-	int i = 0;
-	fp = fopen("bear.obj", "rb");
-
-	do{
-		c1 = fgetc(fp);
-		c2 = fgetc(fp);
-		//cout << "C1: " << (char)c1 << endl;
-		if ((c1 == 'v') && (c2 == ' '))
-		{
-			fscanf(fp, "%f %f %f", &x, &y, &z);
-			Vector3 xyz = Vector3(x, y, z);
-			bearVert.push_back(xyz);
-
-			xMax = fmaxf(xMax, x);
-			xMin = fminf(xMin, x);
-
-			yMax = fmaxf(yMax, y);
-			yMin = fminf(yMin, y);
-
-			zMax = fmaxf(zMax, z);
-			zMin = fminf(zMin, z);
-		}
-		else if ((c1 == 'v') && (c2 == 'n'))
-		{
-			fscanf(fp, "%f %f %f", &nx, &ny, &nz);
-			Vector3 m = Vector3(nx, ny, nz);
-			//m.normalize();
-			bearNorm.push_back(m);
-		}
-		else if ((c1 == 'f') || (c2 == 'f'))
-		{
-			fscanf(fp, "%f//%f %f//%f %f//%f", &fvx, &fnx, &fvy, &fny, &fvz, &fnz);
-			Vector3 fv = Vector3(fvx, fvy, fvz);
-			Vector3 fn = Vector3(fnx, fny, fnz);
-			bearFaceVert.push_back(fv);
-			bearFaceNorm.push_back(fn);
-
-			//cout << "BearFaceVert: " << bearFaceVert[i].x << endl;
-			i++;
-		}
-		else
-		{
-			fscanf(fp, "");
-		}
-	} while (c1 != EOF);
-
-	float len = 10 * tan(30 * PI / 180);
-
-	bearScale = (len / (xMax - xMin));
-
-	bearMidX = xMin + (xMax - xMin) / 2;
-	bearMidY = yMin + (yMax - yMin) / 2;
-	bearMidZ = zMin + (zMax - zMin) / 2;
-
-	//cout << "BearVert: " << bearNorm[0].x << endl;
-
-	fclose(fp);
-}
-
-void drawBear()
-{
-	Matrix4 bearTranslate;
-	bearTranslate.makeTranslate(-bearMidX, -bearMidY, -bearMidZ);
-
-	Matrix4 bearScaling;
-	bearScaling.makeScale(bearScale, bearScale, bearScale);
-
-	for (int i = 1; i < bearNumFaces; i++)
-	{
-		//First Vertex
-		int first = bearFaceVert[i].x;
-		Vector4 bear = Vector4(bearVert[first - 1].x, bearVert[first - 1].y, bearVert[first - 1].z, 1);
-
-		bear = bearTranslate*bear;
-		bear = bearScaling*bear;
-
-		int fn = bearFaceNorm[i].x;
-		Vector3 normBear = bearNorm[fn - 1];
-
-		//glColor3d(dragColor.x, dragColor.y, dragColor.z);
-		glNormal3d(normBear.x, normBear.y, normBear.z);
-		glVertex3d(bear.x, bear.y, bear.z);
-
-		//Second Vertex
-		int second = bearFaceVert[i].y;
-		Vector4 bear2 = Vector4(bearVert[second - 1].x, bearVert[second - 1].y, bearVert[second - 1].z, 1);
-
-		int sn = bearFaceNorm[i].y;
-		Vector3 normBear2 = bearNorm[sn - 1];
-
-		bear2 = bearTranslate*bear2;
-		bear2 = bearScaling*bear2;
-
-		//glColor3d(dragColor2.x, dragColor2.y, dragColor2.z);
-		glNormal3d(normBear2.x, normBear2.y, normBear2.z);
-		glVertex3d(bear2.x, bear2.y, bear2.z);
-
-		//Third Vertex
-		int third = bearFaceVert[i].z;
-		Vector4 bear3 = Vector4(bearVert[third - 1].x, bearVert[third - 1].y, bearVert[third - 1].z, 1);
-
-		int tn = bearFaceNorm[i].z;
-		Vector3 normBear3 = bearNorm[tn - 1];
-
-		bear3 = bearTranslate*bear3;
-		bear3 = bearScaling*bear3;
-
-		//glColor3d(dragColor3.x, dragColor3.y, dragColor3.z);
-		glNormal3d(normBear3.x, normBear3.y, normBear3.z);
-		glVertex3d(bear3.x, bear3.y, bear3.z);
-	}
+	/* switch back to the model view matrix */
+	glMatrixMode(GL_MODELVIEW);
 }
 
 //----------------------------------------------------------------------------
@@ -516,167 +99,288 @@ int light = 0;
 int col = 0;
 int spot = 0;
 
+//Texture.cpp provided
+
+unsigned char* loadPPM(const char* filename, int& width, int& height)
+{
+	const int BUFSIZE = 128;
+	FILE* fp;
+	unsigned int read;
+	unsigned char* rawData;
+	char buf[3][BUFSIZE];
+	char* retval_fgets;
+	size_t retval_sscanf;
+
+	if ((fp = fopen(filename, "rb")) == NULL)
+	{
+		std::cerr << "error reading ppm file, could not locate " << filename << std::endl;
+		width = 0;
+		height = 0;
+		return NULL;
+	}
+
+	// Read magic number:
+	retval_fgets = fgets(buf[0], BUFSIZE, fp);
+
+	// Read width and height:
+	do
+	{
+		retval_fgets = fgets(buf[0], BUFSIZE, fp);
+	} while (buf[0][0] == '#');
+	retval_sscanf = sscanf(buf[0], "%s %s", buf[1], buf[2]);
+	width = atoi(buf[1]);
+	height = atoi(buf[2]);
+
+	// Read maxval:
+	do
+	{
+		retval_fgets = fgets(buf[0], BUFSIZE, fp);
+	} while (buf[0][0] == '#');
+
+	// Read image data:
+	rawData = new unsigned char[width * height * 3];
+	read = fread(rawData, width * height * 3, 1, fp);
+	fclose(fp);
+	if (read != 1)
+	{
+		std::cerr << "error parsing ppm file, incomplete data" << std::endl;
+		delete[] rawData;
+		width = 0;
+		height = 0;
+		return NULL;
+	}
+
+	return rawData;
+}
+
+int stop = 0;
+GLuint texture[6];
+int twidth, theight;
+unsigned char* tdata0;
+unsigned char* tdata1;
+unsigned char* tdata2;
+unsigned char* tdata3;
+unsigned char* tdata4;
+unsigned char* tdata5;
+
+void genTextures()
+{
+	glGenTextures(1, &texture[0]);
+	//glGenTextures(6, &texture[0]);
+
+	tdata0 = loadPPM("PalldioPalace_extern_front.ppm", twidth, theight);
+	if (tdata0 == NULL) return;
+
+	//tdata1 = loadPPM("PalldioPalace_extern_right.ppm", twidth, theight);
+	if (tdata1 == NULL) return;
+
+	//tdata2 = loadPPM("PalldioPalace_extern_left.ppm", twidth, theight);
+	if (tdata2 == NULL) return;
+
+	//tdata3 = loadPPM("PalldioPalace_extern_back.ppm", twidth, theight);
+	if (tdata3 == NULL) return;
+
+	//tdata4 = loadPPM("PalldioPalace_extern_top.ppm", twidth, theight);
+	if (tdata4 == NULL) return;
+
+	//tdata5 = loadPPM("PalldioPalace_extern_top.ppm", twidth, theight);
+	if (tdata5 == NULL) return;
+}
+
+int fuckyou = 0;
+
+// load image file into texture object
+void loadTextureFront()
+{
+
+	// Set this texture to be the one we are working with
+	glBindTexture(GL_TEXTURE_2D, texture[0]);
+
+	// Make sure no bytes are padded:
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+	// Select GL_MODULATE to mix texture with polygon color for shading:
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+
+	// Use bilinear interpolation:
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	// Generate the texture
+	glTexImage2D(GL_TEXTURE_2D, 0, 3, twidth, theight, 0, GL_RGB, GL_UNSIGNED_BYTE, tdata0);
+
+	// Set bi-linear filtering for both minification and magnification
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+}
+
+void loadTextureRight()
+{
+
+	// Set this texture to be the one we are working with
+	glBindTexture(GL_TEXTURE_2D, texture[1]);
+
+	// Generate the texture
+	glTexImage2D(GL_TEXTURE_2D, 0, 3, twidth, theight, 0, GL_RGB, GL_UNSIGNED_BYTE, tdata1);
+
+	// Set bi-linear filtering for both minification and magnification
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+}
+
+void loadTextureLeft()
+{
+
+	// Set this texture to be the one we are working with
+	glBindTexture(GL_TEXTURE_2D, texture[2]);
+
+	// Generate the texture
+	glTexImage2D(GL_TEXTURE_2D, 0, 3, twidth, theight, 0, GL_RGB, GL_UNSIGNED_BYTE, tdata2);
+
+	// Set bi-linear filtering for both minification and magnification
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+}
+
+void loadTextureBack()
+{
+
+	// Set this texture to be the one we are working with
+	glBindTexture(GL_TEXTURE_2D, texture[3]);
+
+	// Generate the texture
+	glTexImage2D(GL_TEXTURE_2D, 0, 3, twidth, theight, 0, GL_RGB, GL_UNSIGNED_BYTE, tdata3);
+
+	// Set bi-linear filtering for both minification and magnification
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+}
+
+void loadTextureTop()
+{
+
+	// Set this texture to be the one we are working with
+	glBindTexture(GL_TEXTURE_2D, texture[4]);
+
+	// Generate the texture
+	glTexImage2D(GL_TEXTURE_2D, 0, 3, twidth, theight, 0, GL_RGB, GL_UNSIGNED_BYTE, tdata4);
+
+	// Set bi-linear filtering for both minification and magnification
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+}
+
+void loadTextureBottom()
+{
+
+	// Set this texture to be the one we are working with
+	glBindTexture(GL_TEXTURE_2D, texture[5]);
+
+	// Generate the texture
+	glTexImage2D(GL_TEXTURE_2D, 0, 3, twidth, theight, 0, GL_RGB, GL_UNSIGNED_BYTE, tdata5);
+
+	// Set bi-linear filtering for both minification and magnification
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+}
+
+//End of texture.cpp
+
 void Window::displayCallback()
 {
+	if (fuckyou == 0)
+		genTextures();
+	fuckyou = 1;
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);  // clear color and depth buffer
 
 	glMatrixMode(GL_MODELVIEW);  // make sure we're in Modelview mode
 
 	Matrix4 glmatrix;
-	glmatrix = Globals::cube.getMatrix();
+	glmatrix = Globals::camera.c;
 	glmatrix.transpose();
 	glLoadMatrixd(glmatrix.getPointer());
 
-	glBegin(GL_QUADS);
+	//glBegin(GL_QUADS);
 
-	Bezier my = Bezier(5, 5);
+	Bezier my = Bezier(1, 1);
 
 	for (float t1 = -0.5; t1 < 0.5; t1 += 0.01)
 	{
 		for (float t2 = -0.5; t2 < 0.5; t2 += 0.01)
 		{
-			my.tessellate(t1, t2, 0.05);
+			//my.tessellate(t1, t2, 0.01);
 		}
 	}
+
+	//glEnd();
+
+	// set the current drawing color to white to use original texture colors
+	glColor3f(1, 1, 1);
+
+	// specify texture coordinates for each vertex
+	// note that textures are stored "upside down"
+
+	loadTextureFront();
+	glBegin(GL_QUADS);
+	//front
+	glTexCoord2f(0, 1); glVertex3f(-2, -1, 0);
+	glTexCoord2f(1, 1); glVertex3f(2, -1, 0);
+	glTexCoord2f(1, 0); glVertex3f(2, 1, 0);
+	glTexCoord2f(0, 0); glVertex3f(-2, 1, 0);
 
 	glEnd();
 
 	/*
-	//Setup 4 control points
-	Vector4 p0(0.0, 0.0, 0.0, 1.0);
-	Vector4 p1(0.0, 1.0, 0.0, 1.0);
-	Vector4 p2(1.0, 1.0, 0.0, 1.0);
-	Vector4 p3(1.0, 0.0, 0.0, 1.0);
+	//loadTextureRight();
+	//glBegin(GL_QUADS);
+	//right
+	glTexCoord2f(0, 1); glVertex3f(2, -2, -2);
+	glTexCoord2f(1, 1); glVertex3f(2, -2, 2);
+	glTexCoord2f(1, 0); glVertex3f(2, 2, 2);
+	glTexCoord2f(0, 0); glVertex3f(2, 2, -2);
 
-	//Setup the control point matrix
-	Matrix4 Mp(p0.x, p1.x, p2.x, p3.x,
-		p0.y, p1.y, p2.y, p3.y,
-		p0.z, p1.z, p2.z, p3.z,
-		0.0, 0.0, 0.0, 0.0);
+	//glEnd();
 
-	//Pick a time t
-	double t0 = 0.25;
-	double t1 = .5;
-	double t2 = .75;
-	double t3 = 1.0;
+	//loadTextureLeft();
+	//glBegin(GL_QUADS);
+	//left
+	glTexCoord2f(0, 1); glVertex3f(-2, -2, 2);
+	glTexCoord2f(1, 1); glVertex3f(-2, -2, -2);
+	glTexCoord2f(1, 0); glVertex3f(-2, 2, -2);
+	glTexCoord2f(0, 0); glVertex3f(-2, 2, 2);
 
-	//Create a vector with our Bernstein coefficients
-	Vector4 C0(bernstizzlesCoeff(3, 0, t0),
-		bernstizzlesCoeff(3, 1, t0),
-		bernstizzlesCoeff(3, 2, t0),
-		bernstizzlesCoeff(3, 3, t0));
+	//glEnd();
 
-	//Calculate the final point q
-	Vector4 q0 = Mp * C0;
+	//loadTextureBack();
+	//glBegin(GL_QUADS);
+	//back
+	glTexCoord2f(0, 1); glVertex3f(-2, -2, 2);
+	glTexCoord2f(1, 1); glVertex3f(2, -2, 2);
+	glTexCoord2f(1, 0); glVertex3f(2, 2, 2);
+	glTexCoord2f(0, 0); glVertex3f(-2, 2, 2);
 
-	//And make sure q is a point by setting its w-component to 1
-	q0.w = 1.0;
+	//glEnd();
 
-	//2nd point
+	//loadTextureTop();
+	//glBegin(GL_QUADS);
+	//top
+	glTexCoord2f(0, 1); glVertex3f(-2, 2, 2);
+	glTexCoord2f(1, 1); glVertex3f(2, 2, 2);
+	glTexCoord2f(1, 0); glVertex3f(2, 2, -2);
+	glTexCoord2f(0, 0); glVertex3f(-2, 2, -2);
 
-	//Create a vector with our Bernstein coefficients
-	Vector4 C1(bernstizzlesCoeff(3, 0, t1),
-		bernstizzlesCoeff(3, 1, t1),
-		bernstizzlesCoeff(3, 2, t1),
-		bernstizzlesCoeff(3, 3, t1));
+	//glEnd();
 
-	//Calculate the final point q
-	Vector4 q1 = Mp * C1;
+	//loadTextureBottom();
+	//glBegin(GL_QUADS);
+	//bottom
+	glTexCoord2f(0, 1); glVertex3f(-2, -2, 2);
+	glTexCoord2f(1, 1); glVertex3f(2, -2, 2);
+	glTexCoord2f(1, 0); glVertex3f(2, -2, -2);
+	glTexCoord2f(0, 0); glVertex3f(-2, -2, -2);
 
-	//And make sure q is a point by setting its w-component to 1
-	q1.w = 1.0;
-
-	//3rd point
-
-	//Create a vector with our Bernstein coefficients
-	Vector4 C2(bernstizzlesCoeff(3, 0, t2),
-		bernstizzlesCoeff(3, 1, t2),
-		bernstizzlesCoeff(3, 2, t2),
-		bernstizzlesCoeff(3, 3, t2));
-
-	//Calculate the final point q
-	Vector4 q2 = Mp * C2;
-
-	//And make sure q is a point by setting its w-component to 1
-	q2.w = 1.0;
-
-	//4th point
-
-	//Create a vector with our Bernstein coefficients
-	Vector4 C3(bernstizzlesCoeff(3, 0, t3),
-		bernstizzlesCoeff(3, 1, t3),
-		bernstizzlesCoeff(3, 2, t3),
-		bernstizzlesCoeff(3, 3, t3));
-
-	//Calculate the final point q
-	Vector4 q3 = Mp * C3;
-
-	//And make sure q is a point by setting its w-component to 1
-	q3.w = 1.0;
-
-	//Draw the quads
-	glBegin(GL_QUADS);
-
-	glVertex3d(q0.x, q0.y, q0.z);
-	glVertex3d(q1.x, q1.y, q1.z);
-	glVertex3d(q2.x, q2.y, q2.z);
-	glVertex3d(q3.x, q3.y, q3.z);
-
-	glEnd();
-	*/
-
-	/* Project 5 
-	//Shader
-	Shader myShader = Shader("diffuse_shading.vert", "diffuse_shading.frag", true);
-	if (pixel == 1)
-		myShader.bind();
-	else
-		myShader.unbind();
-	myShader.printLog();
-	//End of shader
-
-	//Light
-	if (col == 0)
-		Material rabbit(Vector4(1,1,1,1),Vector4(0,1,0,0),Vector4(0,1,0,0), 1);
-	else if (col == 1)
-		Material dragon(Vector4(0, 1, 1, 0), Vector4(1, 1, 1, 1), Vector4(0, 0, 1, 0), 100);
-	else if (col == 2)
-		Material bear(Vector4(1, 1, 0, 0), Vector4(1, 0, 0, 0), Vector4(1, 1, 1, 1), 1000);
-
-	//Point Light
-	if (pixel == 0)
-	{
-		if (light == 0)
-			Light point(0, Vector4(1, 1, 1, 1), Vector4(0, 5, 1, 0));
-		else if (light == 1)
-			Light point(0, Vector4(0, 0, 1, 1), Vector4(5, 5, 1, 0));
-		else if (light == 2)
-			Light point(0, Vector4(0, 1, 0, 1), Vector4(-5, 5, 1, 0));
-	}
-	//Spotlight
-	Light spot(1, Vector4(1,0,0,1), Vector4(0,0,5,1), Vector3(0,0,0));
-
-	glEnable(GL_LIGHTING);
-	//End of Light
-
-	glMatrixMode(GL_MODELVIEW);  // make sure we're in Modelview mode
-
-	Matrix4 glmatrix;
-	glmatrix = Globals::cube.getMatrix();
-	glmatrix.transpose();
-	glLoadMatrixd(glmatrix.getPointer());
-
-	glBegin(GL_TRIANGLES);
-
-	if (mode == 1)
-		drawBunny();
-	else if (mode == 2)
-		drawDragon();
-	else if (mode == 3)
-		drawBear();
-
-	glEnd();
+	//glEnd();
 	*/
 
 	glFlush();  
@@ -748,12 +452,13 @@ void Window::keyboardCallback(unsigned char key, int x, int y)
 			//Globals::cube.moveOutIn(-2);
 			break;
 		case 114:
-			//Globals::camera.c = Globals::camera.c * rotateClock;
-			Globals::cube.rotateY(5);
+			Globals::camera.d.x += .5;
+			Globals::camera.c = Globals::camera.getInverseCamera();
+			//Globals::cube.rotateY(5);
 			break;
 		case 82:
-			//Globals::camera.c = Globals::camera.c * rotateCClock;
-			Globals::cube.rotateY(-5);
+			Globals::camera.c = Globals::camera.c * rotateCClock;
+			//Globals::cube.rotateY(-5);
 			break;
 		case 111:
 			Globals::cube.orbit(10);
@@ -824,7 +529,8 @@ void Window::processMouseMove(int x, int y) {
 	if (!freeze) {
 		if (left_clicked) { // rotate modelview
 			if (x != x_mouse || y != y_mouse) {
-				Globals::cube.getMatrix().ballRotation(Window::width, Window::height, x_mouse, y_mouse, x, y);
+				//Globals::cube.getMatrix().ballRotation(Window::width, Window::height, x_mouse, y_mouse, x, y);
+				Globals::camera.c.ballRotation(Window::width, Window::height, x_mouse, y_mouse, x, y);
 				x_mouse = x;
 				y_mouse = y;
 			}
@@ -833,13 +539,15 @@ void Window::processMouseMove(int x, int y) {
 			if (y < y_mouse) {
 				Matrix4 scaler;
 				scaler.makeScale(1.05, 1.05, 1.05);
-				Globals::cube.getMatrix()*scaler;
+				//Globals::cube.getMatrix()*scaler;
+				Globals::camera.c*scaler;
 				y_mouse = y;
 			}
 			else if (y > y_mouse) {
 				Matrix4 cutter;
 				cutter.makeScale(.95, .95, .95);
-				Globals::cube.getMatrix()*cutter;
+				//Globals::cube.getMatrix()*cutter;
+				Globals::camera.c*cutter;
 				y_mouse = y;
 			}
 		}
